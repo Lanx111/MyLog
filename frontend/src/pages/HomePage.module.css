@@ -1,0 +1,12 @@
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  margin-top: 8px;
+}
+
+.sectionHeader h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+}

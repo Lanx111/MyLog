@@ -1,0 +1,3 @@
+/* Header component uses global .app-header and .logo styles.
+   This module is intentionally minimal — nav link active styles
+   are handled by the global .app-header nav a.active rule. */

@@ -1,0 +1,67 @@
+.profile {
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-primary);
+}
+
+.name {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.title {
+  font-size: 0.95rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.bio {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  margin-bottom: 16px;
+  color: var(--color-text);
+}
+
+.section {
+  margin-bottom: 14px;
+}
+
+.section h3 {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.goals {
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.links {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.links a {
+  font-size: 0.88rem;
+  color: var(--color-primary);
+}

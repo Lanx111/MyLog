@@ -1,0 +1,32 @@
+# ============================================
+# MyLog — Docker Compose 编排
+# 启动: docker compose up -d
+# 停止: docker compose down
+# ============================================
+
+services:
+  backend:
+    build: ./backend
+    container_name: mylog-backend
+    restart: unless-stopped
+    volumes:
+      - mylog_data:/app/data   # SQLite 数据库持久化
+    networks:
+      - mylog-net
+
+  frontend:
+    build: ./frontend
+    container_name: mylog-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"                # 前端 80 端口对外暴露
+    depends_on:
+      - backend
+    networks:
+      - mylog-net
+
+volumes:
+  mylog_data:                  # 命名卷，数据保存在宿主机上
+
+networks:
+  mylog-net:                   # 内部网络，容器间通过服务名通信
