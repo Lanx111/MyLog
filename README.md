@@ -19,7 +19,7 @@ MyLog 用于展示个人信息、技术方向和学习目标，同时支持记�
 
 | 层级 | 技术 | 选择理由 |
 |------|------|----------|
-| 前端框架 | **React ** | 极致的灵活性、庞大的生态和社区、跨平台能力 |
+| 前端框架 | **React** | 极致的灵活性、庞大的生态和社区、跨平台能力 |
 | 构建工具 | **Vite** | React 官方推荐的现代构建工具，相比 CRA 启动更快、HMR 更优 |
 | 路由 | **React Router v6** | React 生态最主流的路由方案 |
 | 后端框架 | **FastAPI** | 现代 Python Web 框架，自动生成 Swagger API 文档，原生异步支持，Pydantic 数据验证开箱即用 |
@@ -82,7 +82,7 @@ MyLog/
 |------|------|------|
 | GET | `/api/profile` | 获取个人信息 |
 | PUT | `/api/profile` | 更新个人信息 |
-| GET | `/api/posts` | 日志列表（支持 `?type=&page=&limit=&q=`） |
+| GET | `/api/posts` | 日志列表 |
 | POST | `/api/posts` | 创建日志 |
 | GET | `/api/posts/{id}` | 获取单条日志 |
 | PUT | `/api/posts/{id}` | 更新日志 |
