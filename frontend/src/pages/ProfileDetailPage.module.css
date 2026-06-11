@@ -1,0 +1,95 @@
+.back {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--color-primary);
+}
+
+.back:hover {
+  text-decoration: underline;
+}
+
+.profile {
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.avatar {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--color-primary);
+}
+
+.name {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.username {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+.title {
+  font-size: 0.92rem;
+  color: var(--color-primary);
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.section {
+  margin-bottom: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--color-border);
+}
+
+.section h3 {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 6px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.section p {
+  font-size: 0.92rem;
+  line-height: 1.7;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.contactGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.contactItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  min-width: 50px;
+}
+
+.contactItem a {
+  font-size: 0.88rem;
+  word-break: break-all;
+}

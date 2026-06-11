@@ -39,6 +39,16 @@
   white-space: pre-line;
 }
 
-.tags {
-  margin-top: 4px;
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.author {
+  font-size: 0.82rem;
+  color: var(--color-primary);
+  font-weight: 500;
 }

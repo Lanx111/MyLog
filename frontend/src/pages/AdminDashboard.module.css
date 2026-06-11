@@ -1,0 +1,149 @@
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.header {
+  margin-bottom: 16px;
+}
+
+.header h2 {
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+}
+
+.toast {
+  background: var(--color-primary);
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  animation: fadeIn 0.2s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── User cards ── */
+.userCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+}
+
+.userInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.userHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
+}
+
+.username {
+  font-size: 1rem;
+}
+
+.adminBadge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  font-size: 0.72rem;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.meta {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+}
+
+.bio {
+  font-size: 0.85rem;
+  margin-top: 4px;
+  color: var(--color-text);
+}
+
+.userMeta {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  margin-top: 4px;
+}
+
+/* ── Post cards ── */
+.postCard {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+}
+
+.postInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.postHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+
+.typeTag {
+  font-size: 0.73rem;
+  padding: 1px 7px;
+}
+
+.postAuthor {
+  font-size: 0.82rem;
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.postDate {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+}
+
+.postTitle {
+  display: block;
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.postContent {
+  font-size: 0.82rem;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  white-space: pre-line;
+}
+
+.actions {
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .userCard,
+  .postCard {
+    flex-direction: column;
+  }
+}

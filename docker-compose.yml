@@ -13,6 +13,12 @@ services:
       - mylog_data:/app/data   # SQLite 数据库持久化
     networks:
       - mylog-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
   frontend:
     build: ./frontend
@@ -21,9 +27,16 @@ services:
     ports:
       - "80:80"                # 前端 80 端口对外暴露
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy   # 等后端健康后再启动
     networks:
       - mylog-net
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
 
 volumes:
   mylog_data:                  # 命名卷，数据保存在宿主机上

@@ -1,0 +1,26 @@
+.page {
+  max-width: 400px;
+  margin: 48px auto;
+}
+
+.title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.error {
+  background: #fef2f2;
+  color: #dc2626;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  margin-bottom: 12px;
+}
+
+.footer {
+  margin-top: 16px;
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+  text-align: center;
+}

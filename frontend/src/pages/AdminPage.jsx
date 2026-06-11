@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { get, put, post, del } from '../api';
+import { useAuth } from '../AuthContext';
 import PostForm from '../components/PostForm';
 import styles from './AdminPage.module.css';
 
 export default function AdminPage() {
-  const [tab, setTab] = useState('posts'); // 'profile' | 'posts'
+  const { user } = useAuth();
+  const [tab, setTab] = useState('posts');
   const [profile, setProfile] = useState(null);
   const [posts, setPosts] = useState([]);
   const [editingPost, setEditingPost] = useState(null);
@@ -12,14 +14,17 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
-  // profile form state
   const [profileForm, setProfileForm] = useState({
     name: '', title: '', bio: '', skillsStr: '',
     github_url: '', blog_url: '', email: '', learning_goals: '',
   });
 
   useEffect(() => {
-    Promise.all([get('/api/profile'), get('/api/posts?limit=50')])
+    if (!user) return;
+    Promise.all([
+      get('/api/profile'),
+      get('/api/posts?limit=50&user_id=' + user.id),
+    ])
       .then(([profileRes, postsRes]) => {
         const p = profileRes.data;
         if (p) {
@@ -39,7 +44,7 @@ export default function AdminPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   const showMessage = (msg) => {
     setMessage(msg);
@@ -48,21 +53,15 @@ export default function AdminPage() {
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
-    const skills = profileForm.skillsStr
-      .split(/[,，]/)
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const body = {
-      ...profileForm,
-      skills,
-    };
+    const skills = profileForm.skillsStr.split(/[,，]/).map((s) => s.trim()).filter(Boolean);
+    const body = { ...profileForm, skills };
     delete body.skillsStr;
     try {
       const res = await put('/api/profile', body);
       setProfile(res.data);
       showMessage('个人信息已更新');
     } catch (e) {
-      showMessage('保存失败');
+      showMessage('保存失败: ' + e.message);
     }
   };
 
@@ -71,11 +70,10 @@ export default function AdminPage() {
       await post('/api/posts', data);
       setShowForm(false);
       showMessage('日志已发布');
-      // refetch
-      const res = await get('/api/posts?limit=50');
+      const res = await get('/api/posts?limit=50&user_id=' + user.id);
       setPosts(res.data.items);
     } catch (e) {
-      showMessage('发布失败');
+      showMessage('发布失败: ' + e.message);
     }
   };
 
@@ -84,10 +82,10 @@ export default function AdminPage() {
       await put(`/api/posts/${editingPost.id}`, data);
       setEditingPost(null);
       showMessage('日志已更新');
-      const res = await get('/api/posts?limit=50');
+      const res = await get('/api/posts?limit=50&user_id=' + user.id);
       setPosts(res.data.items);
     } catch (e) {
-      showMessage('更新失败');
+      showMessage('更新失败: ' + e.message);
     }
   };
 
@@ -98,7 +96,7 @@ export default function AdminPage() {
       showMessage('日志已删除');
       setPosts(posts.filter((p) => p.id !== postId));
     } catch (e) {
-      showMessage('删除失败');
+      showMessage('删除失败: ' + e.message);
     }
   };
 
@@ -113,7 +111,7 @@ export default function AdminPage() {
           className={`btn btn-sm ${tab === 'posts' ? 'btn-primary' : 'btn-outline'}`}
           onClick={() => setTab('posts')}
         >
-          日志管理
+          我的日志
         </button>
         <button
           className={`btn btn-sm ${tab === 'profile' ? 'btn-primary' : 'btn-outline'}`}
@@ -167,7 +165,7 @@ export default function AdminPage() {
       {tab === 'posts' && (
         <div>
           <div className={styles.sectionHeader}>
-            <h2 className={styles.sectionTitle}>日志管理</h2>
+            <h2 className={styles.sectionTitle}>我的日志</h2>
             {!showForm && !editingPost && (
               <button className="btn btn-primary btn-sm" onClick={() => setShowForm(true)}>
                 + 写日志
@@ -185,7 +183,7 @@ export default function AdminPage() {
             </div>
           )}
 
-          {posts.length === 0 ? (
+          {posts.length === 0 && !showForm && !editingPost ? (
             <div className="empty-state">
               <h3>暂无日志</h3>
               <p>点击"写日志"创建第一条内容</p>
@@ -200,16 +198,10 @@ export default function AdminPage() {
                   </span>
                 </div>
                 <div className={styles.postActions}>
-                  <button
-                    className="btn btn-outline btn-sm"
-                    onClick={() => { setEditingPost(post); setShowForm(false); }}
-                  >
+                  <button className="btn btn-outline btn-sm" onClick={() => { setEditingPost(post); setShowForm(false); }}>
                     编辑
                   </button>
-                  <button
-                    className="btn btn-danger btn-sm"
-                    onClick={() => handlePostDelete(post.id)}
-                  >
+                  <button className="btn btn-danger btn-sm" onClick={() => handlePostDelete(post.id)}>
                     删除
                   </button>
                 </div>

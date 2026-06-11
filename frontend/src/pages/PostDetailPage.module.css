@@ -6,10 +6,18 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .typeTag {
   font-size: 0.8rem;
+}
+
+.author {
+  font-size: 0.85rem;
+  color: var(--color-primary);
+  font-weight: 500;
 }
 
 .date {

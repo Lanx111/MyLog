@@ -1,5 +1,4 @@
 """Pydantic schemas for request/response validation."""
-from datetime import datetime
 from typing import Optional, List, Any
 from pydantic import BaseModel, Field
 
@@ -17,6 +16,18 @@ class PaginatedData(BaseModel):
     total: int
     page: int
     limit: int
+
+
+# ── Auth ──
+
+class UserRegister(BaseModel):
+    username: str = Field(..., min_length=2, max_length=50)
+    password: str = Field(..., min_length=4, max_length=100)
+
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
 
 
 # ── Profile ──
@@ -47,10 +58,3 @@ class PostUpdate(BaseModel):
     content: Optional[str] = None
     post_type: Optional[str] = Field(default=None, pattern=r"^(work_log|study_log|daily_report|weekly_report|summary)$")
     tags: Optional[List[str]] = None
-
-
-class PostListQuery(BaseModel):
-    post_type: Optional[str] = None
-    page: int = Field(default=1, ge=1)
-    limit: int = Field(default=10, ge=1, le=100)
-    q: Optional[str] = None  # search keyword

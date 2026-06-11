@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { get, del } from '../api';
+import { useAuth } from '../AuthContext';
 import styles from './PostDetailPage.module.css';
 
 const TYPE_LABELS = {
@@ -21,6 +22,7 @@ function formatDate(iso) {
 export default function PostDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [post, setPost] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -37,9 +39,11 @@ export default function PostDetailPage() {
       await del(`/api/posts/${id}`);
       navigate('/admin');
     } catch (e) {
-      alert('删除失败');
+      alert('删除失败: ' + e.message);
     }
   };
+
+  const isOwner = user && post && user.id === post.user_id;
 
   if (loading) return <div className="loading">加载中...</div>;
   if (!post) return <div className="empty-state"><h3>日志不存在</h3><Link to="/posts">返回列表</Link></div>;
@@ -48,9 +52,12 @@ export default function PostDetailPage() {
     <div className="card">
       <div className={styles.detail}>
         <div className={styles.meta}>
-          <span className={`tag ${styles.typeTag}`}>
-            {TYPE_LABELS[post.post_type] || post.post_type}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span className={`tag ${styles.typeTag}`}>
+              {TYPE_LABELS[post.post_type] || post.post_type}
+            </span>
+            <span className={styles.author}>@{post.author}</span>
+          </div>
           <span className={styles.date}>{formatDate(post.created_at)}</span>
         </div>
         <h1 className={styles.title}>{post.title}</h1>
@@ -64,7 +71,9 @@ export default function PostDetailPage() {
         )}
         <div className={styles.actions}>
           <Link to="/posts" className="btn btn-outline btn-sm">返回列表</Link>
-          <button className="btn btn-danger btn-sm" onClick={handleDelete}>删除</button>
+          {isOwner && (
+            <button className="btn btn-danger btn-sm" onClick={handleDelete}>删除</button>
+          )}
         </div>
       </div>
     </div>

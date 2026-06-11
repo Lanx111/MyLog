@@ -1,12 +1,107 @@
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+/* ── Members grid ── */
+.memberGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.memberCard {
+  padding: 18px;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.memberCard:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.memberHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.avatarPlaceholder {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.memberInfo {
+  min-width: 0;
+}
+
+.memberName {
+  display: block;
+  font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.memberTitle {
+  font-size: 0.8rem;
+  color: var(--color-text-secondary);
+}
+
+.memberBio {
+  font-size: 0.85rem;
+  color: var(--color-text);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.memberSkills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.moreTag {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  padding: 2px 8px;
+}
+
+/* ── Posts ── */
 .sectionHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 14px;
-  margin-top: 8px;
 }
 
 .sectionHeader h2 {
   font-size: 1.15rem;
   font-weight: 600;
+}
+
+@media (max-width: 600px) {
+  .memberGrid {
+    grid-template-columns: 1fr;
+  }
 }

@@ -13,7 +13,7 @@ function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
   const pad = (n) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 export default function PostCard({ post }) {
@@ -33,13 +33,14 @@ export default function PostCard({ post }) {
           {post.content?.slice(0, 150)}
           {post.content?.length > 150 ? '...' : ''}
         </p>
-        {post.tags && post.tags.length > 0 && (
-          <div className={styles.tags}>
-            {post.tags.map((t) => (
-              <span key={t} className="tag">{t}</span>
-            ))}
-          </div>
-        )}
+        <div className={styles.footer}>
+          <Link to={`/profile/${post.user_id}`} className={styles.author}>@{post.author}</Link>
+          {post.tags && post.tags.length > 0 && (
+            <span>
+              {post.tags.map((t) => <span key={t} className="tag">{t}</span>)}
+            </span>
+          )}
+        </div>
       </div>
     </div>
   );
