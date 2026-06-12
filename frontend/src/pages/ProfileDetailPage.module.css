@@ -93,3 +93,21 @@
   font-size: 0.88rem;
   word-break: break-all;
 }
+
+/* ── 日志列表 ── */
+.postsSection {
+  margin-top: 28px;
+}
+
+.postsTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.postCount {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  margin-left: 8px;
+}

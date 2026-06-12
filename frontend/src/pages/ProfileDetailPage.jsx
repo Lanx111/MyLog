@@ -1,18 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { get } from '../api';
+import PostCard from '../components/PostCard';
 import styles from './ProfileDetailPage.module.css';
 
 export default function ProfileDetailPage() {
   const { userId } = useParams();
   const [profile, setProfile] = useState(null);
+  const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    get('/api/profiles')
-      .then((res) => {
-        const p = (res.data || []).find((p) => p.user_id === Number(userId));
+    Promise.all([
+      get('/api/profiles'),
+      get(`/api/posts?user_id=${userId}&limit=50`),
+    ])
+      .then(([profilesRes, postsRes]) => {
+        const p = (profilesRes.data || []).find((p) => p.user_id === Number(userId));
         setProfile(p || null);
+        setPosts(postsRes.data.items || []);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -91,6 +97,21 @@ export default function ProfileDetailPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* 该用户的日志列表 */}
+      <div className={styles.postsSection}>
+        <h2 className={styles.postsTitle}>
+          {profile.name || profile.username} 的日志
+          <span className={styles.postCount}>{posts.length} 条</span>
+        </h2>
+        {posts.length === 0 ? (
+          <div className="empty-state">
+            <p>暂无日志</p>
+          </div>
+        ) : (
+          posts.map((post) => <PostCard key={post.id} post={post} />)
+        )}
       </div>
     </div>
   );
