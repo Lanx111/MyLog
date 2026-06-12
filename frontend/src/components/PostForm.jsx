@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import styles from './PostForm.module.css';
 
 const TYPE_OPTIONS = [
@@ -9,15 +9,100 @@ const TYPE_OPTIONS = [
   { value: 'summary', label: '总结' },
 ];
 
+const DRAFT_KEY = 'mylog_draft';
+
 export default function PostForm({ initial, onSubmit, onCancel }) {
-  const [title, setTitle] = useState(initial?.title || '');
-  const [content, setContent] = useState(initial?.content || '');
-  const [postType, setPostType] = useState(initial?.post_type || 'work_log');
+  // ── 检查是否有草稿 ──
+  const savedDraft = useRef(null);
+  if (!initial && savedDraft.current === null) {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      savedDraft.current = raw ? JSON.parse(raw) : false;
+    } catch {
+      savedDraft.current = false;
+    }
+  }
+
+  const [title, setTitle] = useState(
+    initial?.title || (savedDraft.current?.title ?? '')
+  );
+  const [content, setContent] = useState(
+    initial?.content || (savedDraft.current?.content ?? '')
+  );
+  const [postType, setPostType] = useState(
+    initial?.post_type || savedDraft.current?.post_type || 'work_log'
+  );
   const [tagsStr, setTagsStr] = useState(
-    (initial?.tags || []).join(', ')
+    (initial?.tags || savedDraft.current?.tags || []).join(', ')
   );
   const [submitting, setSubmitting] = useState(false);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [showRestore, setShowRestore] = useState(
+    !initial && savedDraft.current && savedDraft.current !== false
+  );
 
+  // ── 自动保存草稿（2 秒防抖）──
+  const autoSave = useCallback(() => {
+    if (submitting) return;
+    if (!title.trim() && !content.trim()) return;
+
+    const draft = {
+      title: title.trim(),
+      content: content.trim(),
+      post_type: postType,
+      tags: tagsStr.split(/[,，]/).map(t => t.trim()).filter(Boolean),
+      savedAt: new Date().toISOString(),
+    };
+
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+    setDraftSaved(true);
+    setTimeout(() => setDraftSaved(false), 2000);
+  }, [title, content, postType, tagsStr, submitting]);
+
+  // 内容变化后 2 秒自动保存
+  useEffect(() => {
+    const timer = setTimeout(autoSave, 2000);
+    return () => clearTimeout(timer);
+  }, [autoSave]);
+
+  // 页面关闭前最后一次保存
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (!title.trim() && !content.trim()) return;
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        title: title.trim(),
+        content: content.trim(),
+        post_type: postType,
+        tags: tagsStr.split(/[,，]/).map(t => t.trim()).filter(Boolean),
+        savedAt: new Date().toISOString(),
+      }));
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [title, content, postType, tagsStr]);
+
+  // ── 恢复草稿 ──
+  const handleRestore = () => {
+    if (savedDraft.current && savedDraft.current !== false) {
+      const d = savedDraft.current;
+      setTitle(d.title || '');
+      setContent(d.content || '');
+      setPostType(d.post_type || 'work_log');
+      setTagsStr((d.tags || []).join(', '));
+    }
+    setShowRestore(false);
+  };
+
+  const handleDiscardDraft = () => {
+    localStorage.removeItem(DRAFT_KEY);
+    savedDraft.current = false;
+    setTitle('');
+    setContent('');
+    setTagsStr('');
+    setShowRestore(false);
+  };
+
+  // ── 提交 ──
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
@@ -29,13 +114,37 @@ export default function PostForm({ initial, onSubmit, onCancel }) {
     setSubmitting(true);
     try {
       await onSubmit({ title: title.trim(), content, post_type: postType, tags });
+      // 提交成功，清草稿
+      localStorage.removeItem(DRAFT_KEY);
+      savedDraft.current = false;
     } finally {
       setSubmitting(false);
     }
   };
 
+  // ── 取消 ──
+  const handleCancel = () => {
+    // 保留草稿，不清除
+    if (onCancel) onCancel();
+  };
+
   return (
     <form className={styles.form} onSubmit={handleSubmit}>
+      {/* 草稿恢复提示 */}
+      {showRestore && (
+        <div className={styles.draftBanner}>
+          <span>检测到未完成的草稿（{savedDraft.current?.savedAt?.slice(0,16)?.replace('T',' ')}）</span>
+          <div className={styles.draftActions}>
+            <button type="button" className="btn btn-primary btn-sm" onClick={handleRestore}>
+              恢复
+            </button>
+            <button type="button" className="btn btn-outline btn-sm" onClick={handleDiscardDraft}>
+              丢弃
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="form-group">
         <label>类型</label>
         <select value={postType} onChange={(e) => setPostType(e.target.value)}>
@@ -78,9 +187,12 @@ export default function PostForm({ initial, onSubmit, onCancel }) {
           {submitting ? '保存中...' : initial ? '更新' : '发布'}
         </button>
         {onCancel && (
-          <button type="button" className="btn btn-outline" onClick={onCancel}>
+          <button type="button" className="btn btn-outline" onClick={handleCancel}>
             取消
           </button>
+        )}
+        {draftSaved && (
+          <span className={styles.draftIndicator}>草稿已保存</span>
         )}
       </div>
     </form>
