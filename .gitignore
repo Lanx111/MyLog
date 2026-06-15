@@ -18,3 +18,4 @@ mylog_data/
 # OS
 .DS_Store
 Thumbs.db
+.env
