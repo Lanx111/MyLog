@@ -35,10 +35,7 @@ export default function Header() {
             </button>
           </>
         ) : (
-          <>
-            <NavLink to="/login">登录</NavLink>
-            <NavLink to="/register">注册</NavLink>
-          </>
+          <NavLink to="/login">登录</NavLink>
         )}
       </nav>
     </header>

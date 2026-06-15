@@ -18,7 +18,21 @@
       "Bash(git push *)",
       "Bash(npm install *)",
       "Bash(npm test *)",
-      "Bash(npx vitest *)"
+      "Bash(npx vitest *)",
+      "Bash(git *)",
+      "Bash(pip install *)",
+      "Bash(python -m uvicorn main:app --reload --port 8000)",
+      "Bash(where uvicorn *)",
+      "Bash(pip show *)",
+      "Bash(py -3 -m pip show uvicorn)",
+      "Bash(where python *)",
+      "Bash(python -m pip show uvicorn)",
+      "Bash(py -3 --version)",
+      "Bash(py -3 -m pip install -r requirements.txt -q)",
+      "Bash(py -3 -m uvicorn main:app --reload --port 8000)",
+      "Bash(py -3 init_db.py)",
+      "Bash(py -3 -m json.tool)",
+      "Bash(py -3 -c ' *)"
     ]
   }
 }

@@ -3,12 +3,22 @@ import hashlib
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
+from dotenv import load_dotenv
 from jose import JWTError, jwt
 
-SECRET_KEY = os.getenv("JWT_SECRET", "mylog-secret-key-change-in-production")
+# 自动加载 backend/.env 文件（开发环境）
+load_dotenv(Path(__file__).parent / ".env")
+
+SECRET_KEY = os.getenv("JWT_SECRET", "")
+if not SECRET_KEY:
+    raise RuntimeError("必须设置 JWT_SECRET 环境变量，请检查 .env 或系统环境变量配置")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
+
+# 全站访问码（访客浏览用，非登录）
+ACCESS_CODE = os.getenv("ACCESS_CODE", "")
 
 
 def hash_password(password: str) -> str:
@@ -38,3 +48,30 @@ def decode_access_token(token: str) -> dict | None:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except JWTError:
         return None
+
+
+# ── 全站访问码 ──
+
+def create_access_session() -> str:
+    """为验证通过的访客生成一个签名 session token（有效期 7 天）。"""
+    expire = datetime.now(timezone.utc) + timedelta(days=7)
+    payload = {"type": "access_session", "exp": expire}
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def verify_access_code(code: str) -> str | None:
+    """验证访问码，通过则返回 session token，否则返回 None。"""
+    if not ACCESS_CODE:
+        return None
+    if not secrets.compare_digest(code, ACCESS_CODE):
+        return None
+    return create_access_session()
+
+
+def check_access_session(token: str) -> bool:
+    """校验访客的 access session token 是否有效。"""
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        return payload.get("type") == "access_session"
+    except JWTError:
+        return False

@@ -9,6 +9,12 @@ services:
     build: ./backend
     container_name: mylog-backend
     restart: unless-stopped
+    environment:
+      # ⚠️ 生产部署时务必替换为强随机密钥！
+      # 生成方式: python -c "import secrets; print(secrets.token_hex(32))"
+      - JWT_SECRET=${JWT_SECRET:-mylog-docker-default-change-me}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost,http://localhost:80}
+      - ACCESS_CODE=${ACCESS_CODE:-mylog2026}
     volumes:
       - mylog_data:/app/data   # SQLite 数据库持久化
     networks:

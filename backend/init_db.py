@@ -13,7 +13,7 @@ def init():
         # Create demo users if they don't exist
         if db.query(User).count() == 0:
             # User 1: Lan Xin (admin)
-            user1 = create_user(db, "lanxin", "123456")
+            user1 = create_user(db, "lanxin", "Lanxin@2026")
             user1.is_admin = True
             db.commit()
             upsert_profile(db, user1.id, {
@@ -40,7 +40,7 @@ def init():
             })
 
             # User 2: Zhang San (demo mentor)
-            user2 = create_user(db, "zhangsan", "123456")
+            user2 = create_user(db, "zhangsan", "Zhangsan@2026")
             upsert_profile(db, user2.id, {
                 "name": "张三",
                 "title": "技术导师",

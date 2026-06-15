@@ -12,6 +12,9 @@ export function clearToken() { _token = null;
 function headers() {
   const h = { 'Content-Type': 'application/json' };
   if (_token) h['Authorization'] = `Bearer ${_token}`;
+  // 全站访问码 token（sessionStorage）
+  const accessToken = sessionStorage.getItem('mylog_access_token');
+  if (accessToken) h['X-Access-Token'] = accessToken;
   return h;
 }
 
