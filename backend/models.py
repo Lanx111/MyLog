@@ -7,6 +7,21 @@ from sqlalchemy.orm import relationship
 from database import Base
 
 
+def _to_iso(dt: datetime | None) -> str | None:
+    """Convert datetime to ISO string with UTC timezone suffix.
+
+    SQLite strips timezone info on storage, so datetimes read back as naive.
+    Append '+00:00' to ensure the frontend interprets them as UTC, not local time.
+    """
+    if dt is None:
+        return None
+    s = dt.isoformat()
+    # If no timezone indicator present, append UTC offset
+    if not s.endswith('Z') and '+' not in s[11:] and '-' not in s[11:]:
+        s += '+00:00'
+    return s
+
+
 class User(Base):
     """Registered user account."""
 
@@ -27,7 +42,7 @@ class User(Base):
             "id": self.id,
             "username": self.username,
             "is_admin": self.is_admin,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "created_at": _to_iso(self.created_at),
         }
 
 
@@ -74,8 +89,8 @@ class Profile(Base):
             "blog_url": self.blog_url,
             "email": self.email,
             "learning_goals": self.learning_goals,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "created_at": _to_iso(self.created_at),
+            "updated_at": _to_iso(self.updated_at),
         }
 
 
@@ -112,6 +127,6 @@ class Post(Base):
             "content": self.content,
             "post_type": self.post_type,
             "tags": self.tags_list,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
-            "updated_at": self.updated_at.isoformat() if self.updated_at else None,
+            "created_at": _to_iso(self.created_at),
+            "updated_at": _to_iso(self.updated_at),
         }

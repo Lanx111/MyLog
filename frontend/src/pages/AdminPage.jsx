@@ -4,6 +4,14 @@ import { useAuth } from '../AuthContext';
 import PostForm from '../components/PostForm';
 import styles from './AdminPage.module.css';
 
+function formatDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return d.getFullYear() + '-' + mm + '-' + dd;
+}
+
 export default function AdminPage() {
   const { user } = useAuth();
   const [tab, setTab] = useState('posts');
@@ -194,7 +202,7 @@ export default function AdminPage() {
                 <div className={styles.postInfo}>
                   <span className={styles.postTitle}>{post.title}</span>
                   <span className={styles.postMeta}>
-                    {post.post_type} · {post.created_at?.slice(0, 10)}
+                    {post.post_type} · {formatDate(post.created_at)}
                   </span>
                 </div>
                 <div className={styles.postActions}>

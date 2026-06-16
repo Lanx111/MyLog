@@ -68,7 +68,12 @@ export default function AdminDashboard() {
 
   function formatDate(iso) {
     if (!iso) return '';
-    return iso.slice(0, 16).replace('T', ' ');
+    const d = new Date(iso);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mi = String(d.getMinutes()).padStart(2, '0');
+    return d.getFullYear() + '-' + mm + '-' + dd + ' ' + hh + ':' + mi;
   }
 
   if (loading) return <div className="loading">加载中...</div>;
