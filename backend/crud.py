@@ -1,9 +1,10 @@
 """CRUD operations for database models."""
+import os
 from datetime import datetime, timezone
 
 from sqlalchemy.orm import Session, joinedload
 
-from models import User, Profile, Post
+from models import User, Profile, Post, Attachment
 from auth_utils import hash_password
 
 
@@ -130,9 +131,71 @@ def update_post(db: Session, post_id: int, data: dict) -> Post | None:
 
 
 def delete_post(db: Session, post_id: int) -> bool:
+    """Delete a post and its associated attachment files from disk."""
     post = db.query(Post).filter(Post.id == post_id).first()
     if not post:
         return False
+    # 删除磁盘上的附件文件
+    for att in post.attachments:
+        try:
+            os.unlink(att.file_path)
+        except OSError:
+            pass
     db.delete(post)
     db.commit()
     return True
+
+
+# ── Attachments ──
+
+def create_attachment(
+    db: Session,
+    post_id: int,
+    filename: str,
+    stored_name: str,
+    file_path: str,
+    file_size: int,
+    file_type: str,
+    mime_type: str,
+) -> Attachment:
+    """Create an attachment record linked to a post."""
+    att = Attachment(
+        post_id=post_id,
+        filename=filename,
+        stored_name=stored_name,
+        file_path=file_path,
+        file_size=file_size,
+        file_type=file_type,
+        mime_type=mime_type,
+    )
+    db.add(att)
+    db.commit()
+    db.refresh(att)
+    return att
+
+
+def get_attachments_by_post(db: Session, post_id: int) -> list[Attachment]:
+    """List all attachments for a post."""
+    return db.query(Attachment).filter(Attachment.post_id == post_id).all()
+
+
+def get_attachment(db: Session, attachment_id: int) -> Attachment | None:
+    """Get a single attachment by id."""
+    return db.query(Attachment).filter(Attachment.id == attachment_id).first()
+
+
+def delete_attachment(db: Session, attachment_id: int) -> tuple[bool, int | None]:
+    """Delete an attachment record and its file from disk.
+    Returns (success, post_id) — post_id is used for ownership verification before calling.
+    """
+    att = db.query(Attachment).filter(Attachment.id == attachment_id).first()
+    if not att:
+        return False, None
+    post_id = att.post_id
+    try:
+        os.unlink(att.file_path)
+    except OSError:
+        pass
+    db.delete(att)
+    db.commit()
+    return True, post_id

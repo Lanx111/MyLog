@@ -1,11 +1,12 @@
-"""Auth API routes: login, access, me."""
+"""Auth API routes: register, login, access, me."""
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from database import get_db
-from schemas import UserLogin, ApiResponse
-from crud import get_user_by_username
+from schemas import UserLogin, UserRegister, ApiResponse
+from crud import get_user_by_username, create_user
 from auth_utils import verify_password, create_access_token, verify_access_code
 from dependencies import get_current_user
 from models import User
@@ -15,6 +16,22 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 class AccessRequest(BaseModel):
     code: str
+
+
+@router.post("/register")
+def register(body: UserRegister, db: Session = Depends(get_db)):
+    """注册新用户（仅测试使用，生产环境关闭）。"""
+    try:
+        user = create_user(db, body.username, body.password)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="用户名已被注册")
+    token = create_access_token(user.id, user.username)
+    return ApiResponse(data={
+        "access_token": token,
+        "token_type": "bearer",
+        "user": user.to_dict(),
+    }, message="注册成功")
 
 
 @router.post("/access")

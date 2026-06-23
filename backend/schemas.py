@@ -58,3 +58,16 @@ class PostUpdate(BaseModel):
     content: Optional[str] = None
     post_type: Optional[str] = Field(default=None, pattern=r"^(work_log|study_log|daily_report|weekly_report|summary)$")
     tags: Optional[List[str]] = None
+
+
+# ── Attachments ──
+
+class AttachmentResponse(BaseModel):
+    id: int
+    post_id: int
+    filename: str
+    url: str
+    file_size: int
+    file_type: str
+    mime_type: str
+    created_at: Optional[str] = None

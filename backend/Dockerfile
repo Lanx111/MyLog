@@ -12,7 +12,7 @@ COPY *.py .
 COPY routers/ ./routers/
 
 # 数据持久化目录
-RUN mkdir -p /app/data
+RUN mkdir -p /app/data /app/uploads
 ENV DATABASE_URL=sqlite:////app/data/mylog.db
 
 # 启动脚本

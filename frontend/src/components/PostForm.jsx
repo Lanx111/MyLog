@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { uploadFile, del } from '../api';
 import styles from './PostForm.module.css';
 
 const TYPE_OPTIONS = [
@@ -11,7 +12,15 @@ const TYPE_OPTIONS = [
 
 const DRAFT_KEY = 'mylog_draft';
 
-export default function PostForm({ initial, onSubmit, onCancel }) {
+/** 格式化文件大小为可读字符串 */
+function formatSize(bytes) {
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+export default function PostForm({ initial, onSubmit, onComplete, onCancel }) {
   // ── 检查是否有草稿 ──
   const savedDraft = useRef(null);
   if (!initial && savedDraft.current === null) {
@@ -41,6 +50,71 @@ export default function PostForm({ initial, onSubmit, onCancel }) {
     !initial && savedDraft.current && savedDraft.current !== false
   );
 
+  // ── 文件上传状态 ──
+  const imageInputRef = useRef(null);
+  const attachmentInputRef = useRef(null);
+  const [imagePreviews, setImagePreviews] = useState([]);   // { name, size, url }[]
+  const [attachmentInfos, setAttachmentInfos] = useState([]); // { name, size }[]
+  const imageFilesRef = useRef([]);    // File 对象
+  const attachmentFilesRef = useRef([]); // File 对象
+  const [existingAttachments, setExistingAttachments] = useState(
+    initial?.attachments || []
+  );
+  const [deletingAttIds, setDeletingAttIds] = useState(new Set());
+  const [uploadError, setUploadError] = useState('');
+
+  // 选择图片
+  const handleImageSelect = (e) => {
+    const files = Array.from(e.target.files);
+    const newPreviews = files.map((f) => ({
+      name: f.name,
+      size: f.size,
+      url: URL.createObjectURL(f),
+    }));
+    setImagePreviews((prev) => [...prev, ...newPreviews]);
+    imageFilesRef.current = [...imageFilesRef.current, ...files];
+  };
+
+  // 移除图片
+  const handleRemoveImage = (index) => {
+    URL.revokeObjectURL(imagePreviews[index].url);
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+    imageFilesRef.current = imageFilesRef.current.filter((_, i) => i !== index);
+  };
+
+  // 选择附件
+  const handleAttachmentSelect = (e) => {
+    const files = Array.from(e.target.files);
+    setAttachmentInfos((prev) => [
+      ...prev,
+      ...files.map((f) => ({ name: f.name, size: f.size })),
+    ]);
+    attachmentFilesRef.current = [...attachmentFilesRef.current, ...files];
+  };
+
+  // 移除附件
+  const handleRemoveAttachment = (index) => {
+    setAttachmentInfos((prev) => prev.filter((_, i) => i !== index));
+    attachmentFilesRef.current = attachmentFilesRef.current.filter((_, i) => i !== index);
+  };
+
+  // 删除已有附件（编辑模式）
+  const handleDeleteExisting = async (attId) => {
+    setDeletingAttIds((prev) => new Set([...prev, attId]));
+    try {
+      await del(`/api/attachments/${attId}`);
+      setExistingAttachments((prev) => prev.filter((a) => a.id !== attId));
+    } catch (e) {
+      setUploadError('删除附件失败: ' + e.message);
+    } finally {
+      setDeletingAttIds((prev) => {
+        const next = new Set(prev);
+        next.delete(attId);
+        return next;
+      });
+    }
+  };
+
   // ── 自动保存草稿（2 秒防抖）──
   const autoSave = useCallback(() => {
     if (submitting) return;
@@ -59,13 +133,11 @@ export default function PostForm({ initial, onSubmit, onCancel }) {
     setTimeout(() => setDraftSaved(false), 2000);
   }, [title, content, postType, tagsStr, submitting]);
 
-  // 内容变化后 2 秒自动保存
   useEffect(() => {
     const timer = setTimeout(autoSave, 2000);
     return () => clearTimeout(timer);
   }, [autoSave]);
 
-  // 页面关闭前最后一次保存
   useEffect(() => {
     const handleBeforeUnload = () => {
       if (!title.trim() && !content.trim()) return;
@@ -80,6 +152,13 @@ export default function PostForm({ initial, onSubmit, onCancel }) {
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [title, content, postType, tagsStr]);
+
+  // 清理预览 URL
+  useEffect(() => {
+    return () => {
+      imagePreviews.forEach((p) => URL.revokeObjectURL(p.url));
+    };
+  }, []);
 
   // ── 恢复草稿 ──
   const handleRestore = () => {
@@ -106,6 +185,8 @@ export default function PostForm({ initial, onSubmit, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
+    setUploadError('');
+
     const tags = tagsStr
       .split(/[,，]/)
       .map((t) => t.trim())
@@ -113,18 +194,49 @@ export default function PostForm({ initial, onSubmit, onCancel }) {
 
     setSubmitting(true);
     try {
-      await onSubmit({ title: title.trim(), content, post_type: postType, tags });
+      // 1. 创建或更新日志，获取 post_id
+      let postId;
+      try {
+        const result = await onSubmit({ title: title.trim(), content, post_type: postType, tags });
+        postId = result?.id || initial?.id;
+      } catch (err) {
+        setUploadError('保存日志失败: ' + err.message);
+        return;
+      }
+      if (!postId) {
+        setUploadError('无法获取日志 ID，文件上传失败');
+        return;
+      }
+
+      // 2. 上传新图片
+      for (const file of imageFilesRef.current) {
+        try {
+          await uploadFile(`/api/posts/${postId}/attachments`, file);
+        } catch (err) {
+          setUploadError(`图片 ${file.name} 上传失败: ${err.message}`);
+        }
+      }
+
+      // 3. 上传新附件
+      for (const file of attachmentFilesRef.current) {
+        try {
+          await uploadFile(`/api/posts/${postId}/attachments`, file);
+        } catch (err) {
+          setUploadError(`附件 ${file.name} 上传失败: ${err.message}`);
+        }
+      }
+
       // 提交成功，清草稿
       localStorage.removeItem(DRAFT_KEY);
       savedDraft.current = false;
+      // 通知父组件完成（关闭表单、刷新列表等）
+      if (onComplete) onComplete();
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ── 取消 ──
   const handleCancel = () => {
-    // 保留草稿，不清除
     if (onCancel) onCancel();
   };
 
@@ -182,6 +294,107 @@ export default function PostForm({ initial, onSubmit, onCancel }) {
           placeholder="如：React, 学习笔记, 日报"
         />
       </div>
+
+      {/* ── 文件上传区域 ── */}
+      <div className={styles.uploadSection}>
+        {/* 已有附件（编辑模式） */}
+        {existingAttachments.length > 0 && (
+          <div className={styles.existingFiles}>
+            <label>已有附件</label>
+            <ul className={styles.fileList}>
+              {existingAttachments.map((att) => (
+                <li key={att.id} className={styles.fileItem}>
+                  <span className={styles.fileIcon}>
+                    {att.file_type === 'image' ? '🖼️' : '📄'}
+                  </span>
+                  <a
+                    href={att.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={styles.fileLink}
+                  >
+                    {att.filename}
+                  </a>
+                  <span className={styles.fileSize}>({formatSize(att.file_size)})</span>
+                  <button
+                    type="button"
+                    className={`btn btn-sm btn-danger ${styles.deleteBtn}`}
+                    onClick={() => handleDeleteExisting(att.id)}
+                    disabled={deletingAttIds.has(att.id)}
+                  >
+                    {deletingAttIds.has(att.id) ? '删除中...' : '×'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 图片上传 */}
+        <div className="form-group">
+          <label>图片</label>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            multiple
+            onChange={handleImageSelect}
+            className={styles.fileInput}
+          />
+          {imagePreviews.length > 0 && (
+            <div className={styles.imageGrid}>
+              {imagePreviews.map((img, i) => (
+                <div key={i} className={styles.imageThumb}>
+                  <img src={img.url} alt={img.name} />
+                  <button
+                    type="button"
+                    className={styles.removeBtn}
+                    onClick={() => handleRemoveImage(i)}
+                    title="移除"
+                  >
+                    ×
+                  </button>
+                  <span className={styles.imageName}>{img.name}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 附件上传 */}
+        <div className="form-group">
+          <label>附件（支持 .md / .txt / .pdf / .doc / .docx / .xlsx / .zip）</label>
+          <input
+            ref={attachmentInputRef}
+            type="file"
+            accept=".md,.txt,.pdf,.doc,.docx,.xlsx,.zip"
+            multiple
+            onChange={handleAttachmentSelect}
+            className={styles.fileInput}
+          />
+          {attachmentInfos.length > 0 && (
+            <ul className={styles.fileList}>
+              {attachmentInfos.map((f, i) => (
+                <li key={i} className={styles.fileItem}>
+                  <span className={styles.fileIcon}>📄</span>
+                  <span className={styles.fileLink}>{f.name}</span>
+                  <span className={styles.fileSize}>({formatSize(f.size)})</span>
+                  <button
+                    type="button"
+                    className={`btn btn-sm btn-danger ${styles.deleteBtn}`}
+                    onClick={() => handleRemoveAttachment(i)}
+                  >
+                    ×
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+
+      {uploadError && <div className={styles.uploadError}>{uploadError}</div>}
+
       <div className={styles.actions}>
         <button type="submit" className="btn btn-primary" disabled={submitting || !title.trim()}>
           {submitting ? '保存中...' : initial ? '更新' : '发布'}

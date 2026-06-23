@@ -37,3 +37,17 @@ export function get(url) { return request(url); }
 export function post(url, body) { return request(url, { method: 'POST', body: JSON.stringify(body) }); }
 export function put(url, body) { return request(url, { method: 'PUT', body: JSON.stringify(body) }); }
 export function del(url) { return request(url, { method: 'DELETE' }); }
+
+/** 上传文件（multipart/form-data），返回解析后的 JSON 响应 */
+export async function uploadFile(url, file) {
+  const formData = new FormData();
+  formData.append('file', file);
+  const h = {};
+  if (_token) h['Authorization'] = `Bearer ${_token}`;
+  const accessToken = sessionStorage.getItem('mylog_access_token');
+  if (accessToken) h['X-Access-Token'] = accessToken;
+  const res = await fetch(`${BASE}${url}`, { method: 'POST', headers: h, body: formData });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.detail || data.message || `HTTP ${res.status}`);
+  return data;
+}

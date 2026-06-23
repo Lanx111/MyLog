@@ -17,6 +17,7 @@ services:
       - ACCESS_CODE=${ACCESS_CODE:-mylog2026}
     volumes:
       - mylog_data:/app/data   # SQLite 数据库持久化
+      - mylog_uploads:/app/uploads  # 上传文件持久化
     networks:
       - mylog-net
     healthcheck:
@@ -45,7 +46,8 @@ services:
       start_period: 5s
 
 volumes:
-  mylog_data:                  # 命名卷，数据保存在宿主机上
+  mylog_data:                  # 命名卷，数据库保存在宿主机上
+  mylog_uploads:               # 命名卷，上传文件保存在宿主机上
 
 networks:
   mylog-net:                   # 内部网络，容器间通过服务名通信

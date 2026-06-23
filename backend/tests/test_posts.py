@@ -79,7 +79,7 @@ class TestPosts:
         headers, user = auth
         # Create user2
         resp2 = client.post("/api/auth/register", json={
-            "username": "user2", "password": "1234",
+            "username": "user2", "password": "pass1234",
         })
         token2 = resp2.json()["data"]["access_token"]
         h2 = {"Authorization": f"Bearer {token2}"}
@@ -119,7 +119,7 @@ class TestAdmin:
         headers, user = admin
         # Create another user
         client.post("/api/auth/register", json={
-            "username": "normal", "password": "1234",
+            "username": "normal", "password": "pass1234",
         })
 
         resp = client.get("/api/admin/users", headers=headers)
@@ -136,7 +136,7 @@ class TestAdmin:
         headers, user = admin
         # Create a user to delete
         resp = client.post("/api/auth/register", json={
-            "username": "victim", "password": "1234",
+            "username": "victim", "password": "pass1234",
         })
         uid = resp.json()["data"]["user"]["id"]
 

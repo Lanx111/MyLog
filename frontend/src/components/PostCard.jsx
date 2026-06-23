@@ -35,11 +35,18 @@ export default function PostCard({ post }) {
         </p>
         <div className={styles.footer}>
           <Link to={`/profile/${post.user_id}`} className={styles.author}>@{post.author}</Link>
-          {post.tags && post.tags.length > 0 && (
-            <span>
-              {post.tags.map((t) => <span key={t} className="tag">{t}</span>)}
-            </span>
-          )}
+          <span style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+            {post.attachments && post.attachments.length > 0 && (
+              <span className={styles.attachIndicator}>
+                📎 {post.attachments.length}
+              </span>
+            )}
+            {post.tags && post.tags.length > 0 && (
+              <span>
+                {post.tags.map((t) => <span key={t} className="tag">{t}</span>)}
+              </span>
+            )}
+          </span>
         </div>
       </div>
     </div>

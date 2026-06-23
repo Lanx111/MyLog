@@ -74,27 +74,22 @@ export default function AdminPage() {
   };
 
   const handlePostCreate = async (data) => {
-    try {
-      await post('/api/posts', data);
-      setShowForm(false);
-      showMessage('日志已发布');
-      const res = await get('/api/posts?limit=50&user_id=' + user.id);
-      setPosts(res.data.items);
-    } catch (e) {
-      showMessage('发布失败: ' + e.message);
-    }
+    const res = await post('/api/posts', data);
+    return res.data;  // 返回 { id, title, ... } 给 PostForm 用于上传文件
   };
 
   const handlePostUpdate = async (data) => {
-    try {
-      await put(`/api/posts/${editingPost.id}`, data);
-      setEditingPost(null);
-      showMessage('日志已更新');
-      const res = await get('/api/posts?limit=50&user_id=' + user.id);
-      setPosts(res.data.items);
-    } catch (e) {
-      showMessage('更新失败: ' + e.message);
-    }
+    const res = await put(`/api/posts/${editingPost.id}`, data);
+    return res.data;
+  };
+
+  const handlePostComplete = () => {
+    setShowForm(false);
+    setEditingPost(null);
+    showMessage(editingPost ? '日志已更新' : '日志已发布');
+    get('/api/posts?limit=50&user_id=' + user.id)
+      .then((res) => setPosts(res.data.items))
+      .catch(console.error);
   };
 
   const handlePostDelete = async (postId) => {
@@ -186,6 +181,7 @@ export default function AdminPage() {
               <PostForm
                 initial={editingPost}
                 onSubmit={editingPost ? handlePostUpdate : handlePostCreate}
+                onComplete={handlePostComplete}
                 onCancel={() => { setShowForm(false); setEditingPost(null); }}
               />
             </div>

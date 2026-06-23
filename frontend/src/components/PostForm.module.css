@@ -33,6 +33,146 @@
   animation: fadeIn 0.3s;
 }
 
+/* ── 文件上传 ── */
+
+.uploadSection {
+  border-top: 1px solid var(--color-border, #e2e8f0);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+
+.fileInput {
+  padding: 8px 12px;
+  border: 1px dashed var(--color-border, #e2e8f0);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  width: 100%;
+  background: #fafbfc;
+}
+
+.fileInput:hover {
+  border-color: var(--color-primary, #4f6ef7);
+}
+
+/* 图片网格 */
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.imageThumb {
+  position: relative;
+  border: 1px solid var(--color-border, #e2e8f0);
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f9f9f9;
+}
+
+.imageThumb img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+}
+
+.imageThumb .removeBtn {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.imageThumb .removeBtn:hover {
+  background: var(--color-danger, #e74c3c);
+}
+
+.imageName {
+  display: block;
+  font-size: 0.7rem;
+  padding: 3px 6px;
+  color: var(--color-text-secondary, #7f8c9b);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 文件列表 */
+.fileList {
+  list-style: none;
+  margin-top: 10px;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border, #e2e8f0);
+  font-size: 0.85rem;
+}
+
+.fileIcon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.fileLink {
+  color: var(--color-primary, #4f6ef7);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.fileSize {
+  color: var(--color-text-secondary, #7f8c9b);
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.deleteBtn {
+  flex-shrink: 0;
+  padding: 2px 8px !important;
+  font-size: 0.75rem !important;
+}
+
+.existingFiles {
+  margin-bottom: 14px;
+}
+
+.existingFiles > label {
+  display: block;
+  font-size: 0.88rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--color-text, #2c3e50);
+}
+
+.uploadError {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  color: var(--color-danger, #e74c3c);
+  font-size: 0.83rem;
+}
+
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }

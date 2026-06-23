@@ -52,3 +52,11 @@
   color: var(--color-primary);
   font-weight: 500;
 }
+
+.attachIndicator {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  background: var(--color-bg);
+  padding: 1px 8px;
+  border-radius: 10px;
+}

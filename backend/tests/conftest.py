@@ -1,8 +1,13 @@
 """Shared fixtures for API tests."""
+import os
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, pool
 from sqlalchemy.orm import sessionmaker
+
+# 测试环境不启用访问码门控（设为空字符串让 SKIP_ACCESS_GATE 生效）
+os.environ.setdefault("ACCESS_CODE", "")
+
 from database import Base, get_db
 from main import app
 

@@ -1,5 +1,6 @@
 """ORM models for the MyLog database."""
 import json
+import os
 from datetime import datetime, timezone
 
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
@@ -109,6 +110,7 @@ class Post(Base):
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     user = relationship("User", back_populates="posts")
+    attachments = relationship("Attachment", back_populates="post", cascade="all, delete-orphan")
 
     @property
     def tags_list(self) -> list:
@@ -129,4 +131,35 @@ class Post(Base):
             "tags": self.tags_list,
             "created_at": _to_iso(self.created_at),
             "updated_at": _to_iso(self.updated_at),
+            "attachments": [a.to_dict() for a in self.attachments] if self.attachments else [],
+        }
+
+
+class Attachment(Base):
+    """Uploaded file attached to a post — image or document."""
+
+    __tablename__ = "attachments"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    filename = Column(String(300), nullable=False)
+    stored_name = Column(String(300), nullable=False)
+    file_path = Column(String(500), nullable=False)
+    file_size = Column(Integer, default=0)
+    file_type = Column(String(20), nullable=False, default="attachment")  # "image" | "attachment"
+    mime_type = Column(String(100), default="application/octet-stream")
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    post = relationship("Post", back_populates="attachments")
+
+    def to_dict(self) -> dict:
+        return {
+            "id": self.id,
+            "post_id": self.post_id,
+            "filename": self.filename,
+            "url": f"/uploads/{self.stored_name}",
+            "file_size": self.file_size,
+            "file_type": self.file_type,
+            "mime_type": self.mime_type,
+            "created_at": _to_iso(self.created_at),
         }

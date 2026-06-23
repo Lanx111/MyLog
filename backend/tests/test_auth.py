@@ -18,10 +18,10 @@ class TestAuth:
 
     def test_register_duplicate_username_fails(self, client):
         client.post("/api/auth/register", json={
-            "username": "dup", "password": "1234",
+            "username": "dup", "password": "pass1234",
         })
         resp = client.post("/api/auth/register", json={
-            "username": "dup", "password": "5678",
+            "username": "dup", "password": "pass5678",
         })
         assert resp.status_code == 400
         assert "已被注册" in resp.json()["detail"]
@@ -34,17 +34,17 @@ class TestAuth:
 
     def test_login_with_correct_credentials(self, client):
         client.post("/api/auth/register", json={
-            "username": "user1", "password": "correct",
+            "username": "user1", "password": "correct1",
         })
         resp = client.post("/api/auth/login", json={
-            "username": "user1", "password": "correct",
+            "username": "user1", "password": "correct1",
         })
         assert resp.status_code == 200
         assert resp.json()["data"]["access_token"]
 
     def test_login_with_wrong_password(self, client):
         client.post("/api/auth/register", json={
-            "username": "user2", "password": "right",
+            "username": "user2", "password": "right1234",
         })
         resp = client.post("/api/auth/login", json={
             "username": "user2", "password": "wrong",
@@ -88,7 +88,7 @@ class TestProfile:
     def test_profiles_public(self, client, auth):
         headers, user = auth
         client.post("/api/auth/register", json={
-            "username": "other", "password": "1234",
+            "username": "other", "password": "pass1234",
         })
         resp = client.get("/api/profiles")
         assert resp.status_code == 200

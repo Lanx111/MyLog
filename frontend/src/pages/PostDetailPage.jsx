@@ -12,6 +12,13 @@ const TYPE_LABELS = {
   summary: '总结',
 };
 
+function formatSize(bytes) {
+  if (!bytes) return '0 B';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
 function formatDate(iso) {
   if (!iso) return '';
   const d = new Date(iso);
@@ -69,6 +76,45 @@ export default function PostDetailPage() {
             ))}
           </div>
         )}
+
+        {/* ── 附件展示 ── */}
+        {post.attachments && post.attachments.length > 0 && (
+          <div className={styles.attachments}>
+            <h3 className={styles.attachmentsTitle}>附件 ({post.attachments.length})</h3>
+            {/* 图片区 */}
+            {post.attachments.filter(a => a.file_type === 'image').length > 0 && (
+              <div className={styles.imageGrid}>
+                {post.attachments.filter(a => a.file_type === 'image').map((att) => (
+                  <a key={att.id} href={att.url} target="_blank" rel="noopener noreferrer" className={styles.imageLink}>
+                    <img src={att.url} alt={att.filename} className={styles.attImage} />
+                    <span className={styles.imageLabel}>{att.filename}</span>
+                  </a>
+                ))}
+              </div>
+            )}
+            {/* 附件区 */}
+            {post.attachments.filter(a => a.file_type !== 'image').length > 0 && (
+              <ul className={styles.fileList}>
+                {post.attachments.filter(a => a.file_type !== 'image').map((att) => (
+                  <li key={att.id} className={styles.fileItem}>
+                    <span className={styles.fileIcon}>📄</span>
+                    <a
+                      href={att.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.fileLink}
+                      download={att.filename}
+                    >
+                      {att.filename}
+                    </a>
+                    <span className={styles.fileSize}>({formatSize(att.file_size)})</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+
         <div className={styles.actions}>
           <Link to="/posts" className="btn btn-outline btn-sm">返回列表</Link>
           {isOwner && (

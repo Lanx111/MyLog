@@ -2,13 +2,15 @@
 import logging
 import os
 import time
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from database import engine, Base
-from routers import profile, posts, auth, admin
+from routers import profile, posts, auth, admin, attachments
 from auth_utils import check_access_session, decode_access_token
 
 # ── Logging ──
@@ -42,9 +44,13 @@ app.add_middleware(
 
 
 # ── Access gate middleware ──
+# 如果未配置访问码，则跳过访问码检查（开发/测试环境）
+ACCESS_CODE = os.getenv("ACCESS_CODE", "")
+SKIP_ACCESS_GATE = not ACCESS_CODE
+
 # 所有 /api/ 请求需携带有效 JWT 或 X-Access-Token（除白名单路径外）
 ACCESS_WHITELIST = {"/", "/docs", "/openapi.json", "/redoc", "/favicon.ico"}
-ACCESS_AUTH_SKIP = {"/api/auth/access", "/api/auth/login"}
+ACCESS_AUTH_SKIP = {"/api/auth/access", "/api/auth/login", "/api/auth/register"}
 
 
 @app.middleware("http")
@@ -53,6 +59,10 @@ async def access_gate(request: Request, call_next):
 
     # 白名单路径直接放行
     if path in ACCESS_WHITELIST:
+        return await call_next(request)
+
+    # 未配置访问码时（开发/测试环境），跳过门控检查
+    if SKIP_ACCESS_GATE:
         return await call_next(request)
 
     # 只对 /api/ 路径做访问码检查
@@ -101,6 +111,12 @@ app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(posts.router)
 app.include_router(admin.router)
+app.include_router(attachments.router)
+
+# ── Static file serving for uploaded attachments ──
+uploads_dir = Path(__file__).parent / "uploads"
+uploads_dir.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(uploads_dir)), name="uploads")
 
 
 @app.get("/")
