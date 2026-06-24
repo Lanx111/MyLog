@@ -61,7 +61,7 @@ export default function PostForm({ initial, onSubmit, onComplete, onCancel }) {
     initial?.attachments || []
   );
   const [deletingAttIds, setDeletingAttIds] = useState(new Set());
-  const [uploadError, setUploadError] = useState('');
+  const [uploadErrors, setUploadErrors] = useState([]);
 
   // 选择图片
   const handleImageSelect = (e) => {
@@ -105,7 +105,7 @@ export default function PostForm({ initial, onSubmit, onComplete, onCancel }) {
       await del(`/api/attachments/${attId}`);
       setExistingAttachments((prev) => prev.filter((a) => a.id !== attId));
     } catch (e) {
-      setUploadError('删除附件失败: ' + e.message);
+      setUploadErrors((prev) => [...prev, `删除附件失败: ${e.message}`]);
     } finally {
       setDeletingAttIds((prev) => {
         const next = new Set(prev);
@@ -185,7 +185,7 @@ export default function PostForm({ initial, onSubmit, onComplete, onCancel }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title.trim()) return;
-    setUploadError('');
+    setUploadErrors([]);
 
     const tags = tagsStr
       .split(/[,，]/)
@@ -200,20 +200,22 @@ export default function PostForm({ initial, onSubmit, onComplete, onCancel }) {
         const result = await onSubmit({ title: title.trim(), content, post_type: postType, tags });
         postId = result?.id || initial?.id;
       } catch (err) {
-        setUploadError('保存日志失败: ' + err.message);
+        setUploadErrors(['保存日志失败: ' + err.message]);
         return;
       }
       if (!postId) {
-        setUploadError('无法获取日志 ID，文件上传失败');
+        setUploadErrors(['无法获取日志 ID，文件上传失败']);
         return;
       }
+
+      const errors = [];
 
       // 2. 上传新图片
       for (const file of imageFilesRef.current) {
         try {
           await uploadFile(`/api/posts/${postId}/attachments`, file);
         } catch (err) {
-          setUploadError(`图片 ${file.name} 上传失败: ${err.message}`);
+          errors.push(`图片 ${file.name} 上传失败: ${err.message}`);
         }
       }
 
@@ -222,8 +224,13 @@ export default function PostForm({ initial, onSubmit, onComplete, onCancel }) {
         try {
           await uploadFile(`/api/posts/${postId}/attachments`, file);
         } catch (err) {
-          setUploadError(`附件 ${file.name} 上传失败: ${err.message}`);
+          errors.push(`附件 ${file.name} 上传失败: ${err.message}`);
         }
+      }
+
+      if (errors.length > 0) {
+        setUploadErrors(errors);
+        return;
       }
 
       // 提交成功，清草稿
@@ -393,7 +400,13 @@ export default function PostForm({ initial, onSubmit, onComplete, onCancel }) {
         </div>
       </div>
 
-      {uploadError && <div className={styles.uploadError}>{uploadError}</div>}
+      {uploadErrors.length > 0 && (
+        <div className={styles.uploadError}>
+          {uploadErrors.map((msg, i) => (
+            <div key={i}>{msg}</div>
+          ))}
+        </div>
+      )}
 
       <div className={styles.actions}>
         <button type="submit" className="btn btn-primary" disabled={submitting || !title.trim()}>

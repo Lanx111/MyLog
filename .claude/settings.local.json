@@ -45,7 +45,12 @@
       "Bash(venv/Scripts/python.exe -c ' *)",
       "Bash(rm test_response.json)",
       "Bash(/d/Project/MyLog/backend/venv/Scripts/python.exe -c ' *)",
-      "Bash(rm /d/Project/MyLog/backend/test_response.json)"
+      "Bash(rm /d/Project/MyLog/backend/test_response.json)",
+      "Bash(python -c \"from starlette.datastructures import UploadFile; print\\([x for x in dir\\(UploadFile\\) if not x.startswith\\('_'\\)]\\)\")",
+      "Bash(./venv/Scripts/python -c \"from starlette.datastructures import UploadFile; print\\([x for x in dir\\(UploadFile\\) if not x.startswith\\('_'\\)]\\)\")",
+      "Bash(./venv/Scripts/python -c \"from fastapi import UploadFile; print\\([x for x in dir\\(UploadFile\\) if not x.startswith\\('_'\\)]\\)\")",
+      "Bash(./venv/Scripts/python -c ' *)",
+      "Bash(./venv/Scripts/python -m pytest tests/ -v)"
     ]
   }
 }
